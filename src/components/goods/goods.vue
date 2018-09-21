@@ -1,8 +1,9 @@
 <template>
     <div class="goods">
-        <div class="menu-wrapper">
+        <div class="menu-wrapper" id="menuwrapper">
             <ul>
-                <li v-for="(item,index) in goods" :key="index" class="menu-item">
+                <li v-for="(item,index) in goods" :key="index" class="menu-item" 
+                :class="{current:currentIndex === index}" @click="selectMenu(index,$event)">
                     <span class="text border-1px">
                         <span v-show="item.type>0" class="icon"
                             :class="classMap[item.type]"></span>{{item.name}}
@@ -10,9 +11,9 @@
                 </li>
             </ul>
         </div>
-        <div class="foods-wrapper">
+        <div class="foods-wrapper" id="foodwrapper">
             <ul>
-                <li v-for="(item,index) in goods" :key="index" class="food-list">
+                <li v-for="(item,index) in goods" :key="index" class="food-list food-list-hook">
                     <h1 class="title">{{item.name}}</h1>
                     <ul>
                         <li v-for="(food,key) in item.foods" :key="key" class="food-item border-1px">
@@ -48,7 +49,7 @@
     </div>
 </template>
 <script>
-
+    import BScroll from 'better-scroll'
     import shopcart from '../shopcart/shopcart.vue'
     import cartcontrol from '../cartcontrol/cartcontrol.vue'
     var ERR_OK = 0;
@@ -59,6 +60,8 @@ export default {
     data(){
         return{
             goods:[],
+            listHeight:[],
+            scrollY:0,  //存放滑动高度
             classMap:[]
         };
     },
@@ -71,11 +74,25 @@ export default {
             response = response.body;
             if(response.errno == ERR_OK){
                 this.goods = response.data;
+                this.$nextTick(() => {
+                    this._initScroll();
+                    this._calculateHeight();
+                }) 
             };
         });
     },
     computed:{
-        selectFoods(){
+        currentIndex(){
+            for(var i = 0;i < this.listHeight.length;i++){
+                var height1 = this.listHeight[i];
+                var height2 = this.listHeight[i + 1];
+                if(!height2 || (this.scrollY >= height1 && this.scrollY < height2)){  
+                    return i;
+                }
+            }
+            return 0;
+        },
+        selectFoods(){  //点击左边菜单右边显示相应的位置
             var foods = [];
             this.goods.forEach((good) =>{
                 good.foods.forEach((food) =>{
@@ -88,6 +105,36 @@ export default {
         }
     },
     methods:{
+        _initScroll(){
+            this.meunScroll = new BScroll(document.getElementById('menuwrapper'),{
+                click:true  //允许点击
+            }); //起滚动作用
+            this.foodScroll = new BScroll(document.getElementById('foodwrapper'),{
+                probeType:3,  //允许监听位置
+                click:true
+            });
+            this.foodScroll.on('scroll',(pos) => {   //监听
+                this.scrollY = Math.abs(Math.round(pos.y));
+            })
+        },
+        _calculateHeight(){
+            var foodList = document.getElementsByClassName('food-list-hook');
+            var height = 0;
+            this.listHeight.push(height);
+            for(var i = 0;i < foodList.length;i++){
+                var item = foodList[i];
+                height += item.clientHeight;
+                this.listHeight.push(height);
+            }
+        },
+        selectMenu(index,event){
+            if(!event._constructed){  //自己派发的点击事件含有_constructed属性，而浏览器原生的点击事件是没有_constructed属性的
+                return;  //如果是浏览器原生的点击事件则return
+            }
+            var foodList = document.getElementsByClassName('food-list-hook');
+            var el = foodList[index];
+            this.foodScroll.scrollToElement(el,300);
+        },
         cartAdd(target){
             this.$nextTick(() => {
                 this.$refs['shopcart'].drop(target); //调用子组件shopcart中的drop方法
@@ -121,6 +168,14 @@ export default {
                 width 56px
                 padding 0 12px
                 line-height 14px
+                &.current
+                    position relative
+                    z-index 10
+                    margin-top -1px
+                    font-weight 700
+                    background #fff
+                    .text
+                        border-none()
                 .icon
                     display inline-block
                     vertical-align top
@@ -146,7 +201,6 @@ export default {
                     vertical-align middle
                     border-1px(rgba(7,17,27,0.1))
                     font-size 12px
-
         .foods-wrapper
             flex 1
             .title
