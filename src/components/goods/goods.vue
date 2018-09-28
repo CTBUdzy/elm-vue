@@ -16,7 +16,7 @@
                 <li v-for="(item,index) in goods" :key="index" class="food-list food-list-hook">
                     <h1 class="title">{{item.name}}</h1>
                     <ul>
-                        <li v-for="(food,key) in item.foods" :key="key" class="food-item border-1px">
+                        <li @click="selectFood(food,$event)" v-for="(food,key) in item.foods" :key="key" class="food-item border-1px">
                             <div class="icon">
                                 <img :src="food.icon" width="57" height="57">
                             </div>
@@ -46,12 +46,14 @@
         </div>
         <shopcart :select-foods="selectFoods" :deliveryprice="seller.deliveryPrice" 
         :minPrice="seller.minPrice" ref="shopcart"></shopcart>
+        <food :food="selectedFood" ref="food"></food>
     </div>
 </template>
 <script>
     import BScroll from 'better-scroll'
     import shopcart from '../shopcart/shopcart.vue'
     import cartcontrol from '../cartcontrol/cartcontrol.vue'
+    import food from '../food/food.vue'
     var ERR_OK = 0;
 export default {
     props:{
@@ -62,11 +64,12 @@ export default {
             goods:[],
             listHeight:[],
             scrollY:0,  //存放滑动高度
-            classMap:[]
+            classMap:[],
+            selectedFood: {}
         };
     },
-    components:{
-        shopcart,cartcontrol
+    components:{ //注册组件
+        shopcart,cartcontrol,food
     },
     created(){
         this.classMap=['decrease','discount','guarantee','invoice','special']
@@ -105,6 +108,14 @@ export default {
         }
     },
     methods:{
+        //查看商品详情
+        selectFood(food,event){
+            if(!event._constructed){
+                return;
+            }
+            this.selectedFood = food;
+            this.$refs.food.show();   //调用子组件的show方法
+        },
         _initScroll(){
             this.meunScroll = new BScroll(document.getElementById('menuwrapper'),{
                 click:true  //允许点击
@@ -132,8 +143,8 @@ export default {
                 return;  //如果是浏览器原生的点击事件则return
             }
             var foodList = document.getElementsByClassName('food-list-hook');
-            var el = foodList[index];
-            this.foodScroll.scrollToElement(el,300);
+            var el = foodList[index];   //获取到相应位置
+            this.foodScroll.scrollToElement(el,300); //滚动到相应位置
         },
         cartAdd(target){
             this.$nextTick(() => {
