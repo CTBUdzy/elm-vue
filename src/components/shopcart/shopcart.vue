@@ -42,7 +42,7 @@
                     <h1 class="title">购物车</h1>
                     <span class="empty" @click="empty">清空</span>
                 </div>
-                <div class="list-content">
+                <div class="list-content" id="carlist">
                     <ul>
                         <li v-for="(food,index) in selectFoods" :key="index" class="food">
                             <span class="name">{{food.name}}</span>
@@ -64,6 +64,7 @@
 </template>
 <script>
 import cartcontrol from '../cartcontrol/cartcontrol.vue'
+import BScroll from 'better-scroll'
 export default {
   props: {
     selectFoods: {
@@ -119,8 +120,19 @@ export default {
             return false;
         }
         var show = !this.fold;
+        if(show){
+            this.$nextTick(() => {
+                if(!this.scrll){
+                    this.scrll = new BScroll(document.getElementById('carlist'),{
+                    click:true  //允许点击
+                }); //起滚动作用
+                }
+            })
+        }
         return show;
     }
+  },
+  created(){
   },
   methods: {
     drop(el) {

@@ -18,6 +18,20 @@
     const ALL = 2;
 
 export default {
+    data() {
+        return {
+            selectTypeWatch: this.selectType,//存放需要改变的接受的值
+            onlyContentWatch: this.selectType
+        }
+    },
+    watch: {
+        selectTypeWatch(type){
+            this.$emit("on-type-change",type);//组件内对selectTypeWatch变更后向外部发送事件通知
+        },
+        onlyContentWatch(val){
+            this.$emit("on-content-change",val);//组件内对onlyContentWatch变更后向外部发送事件通知
+        }
+    },
     props:{
         ratings:{
             type:Array,
@@ -58,18 +72,18 @@ export default {
     },
     methods:{
         select(type,event){
-            console.log(this.onlyContent);
+            console.log(type);
             if(!event._constructed){
                 return;
             }
-            this.selectType = type;
+            this.selectTypeWatch = type;
             this.$emit("ratingtype.select",type); //派发一个事件，让父组件监听数据的变化
         },
         toggleContent(event){
             if(!event._constructed){
                 return;
             }
-            this.onlyContent = !this.onlyContent;
+            this.onlyContentWatch = !this.onlyContentWatch;
             this.$emit("content.toggle",this.onlyContent);
         }
     }

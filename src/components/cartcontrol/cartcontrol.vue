@@ -2,7 +2,7 @@
     <div class="cartcontrol">
         <transition name="move">
             <div class="cart-decrease" 
-            v-show="food.count>0" @click="removecount()">
+            v-show="food.count>0" @click.stop="removecount()">
             <transition name="cal">
                 <span class="icon-remove_circle_outline inner"></span>
             </transition>

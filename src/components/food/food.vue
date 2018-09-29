@@ -33,7 +33,7 @@
                <split></split>
                <div class="rating">
                    <h2 class="title">商品评价</h2>
-                   <ratingselect :select-type="selectType" :onlyContent="onlyContent" :desc="desc" :ratings="food.ratings"></ratingselect>
+                   <ratingselect @on-content-change='onlyContentChange' @on-type-change="selectTypeChange" :select-type="selectType" :onlyContent="onlyContent" :desc="desc" :ratings="food.ratings"></ratingselect>
                </div>
                <div class="rating-wrapper">
                    <ul v-show="food.ratings && food.ratings.length">
@@ -42,14 +42,16 @@
                                 <span class="name">{{rating.username}}</span>
                                 <img class="avatar" width="12" height="12" :src="rating.avatar">
                             </div>
-                            <div class="time">{{rating.rateTime}}</div>
+                            <div class="time">{{rating.rateTime  | formatDate}}</div>
                             <p class="text">
                                 <span :class="{'icon-thumb_up':rating.rateType === 0,'icon-thumb_down':rating.rateType === 1}"></span>
                                 {{rating.text}}
                             </p>
                        </li>
                    </ul>
-                    <div class="no-rating" v-show="!food.ratings || food.ratings.length"></div>
+                    <div class="no-rating" v-show="!food.ratings || !food.ratings.length">
+                        暂无评价
+                    </div>
                </div>
             </div>
         </div>
@@ -61,6 +63,8 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 import split from '../split/split.vue'
 import ratingselect from '../ratingselect/ratingselect.vue'
 import Vue from 'Vue';
+
+import {formatDate} from '../../common/js/date'   //带有“{}”是引入方式
 
     const POSITIVE = 0;
     const NEGATIVE = 1;
@@ -88,6 +92,12 @@ export default {
         cartcontrol,split,ratingselect
     },
     methods:{
+        selectTypeChange(type) {
+            this.selectType=type;
+        },
+        onlyContentChange(val){
+            this.onlyContent=val;
+        },
         show(){
             this.showFlog = true;
             this.selectType = ALL;
@@ -131,6 +141,12 @@ export default {
             this.$nextTick(() => {
                 this.scroll.refresh();//重新拉伸
             })
+        }
+    },
+    filters:{
+        formatDate(time){
+            let date = new Date(time);
+            return formatDate(date,'yyyy-MM-dd hh:mm');
         }
     }
 }
@@ -277,4 +293,8 @@ export default {
                         color rgb(0,160,220)
                     .icon-thumb_down
                         color rgb(147,153,159)
+            .no-rating
+                padding 16px 0
+                font-size 12px
+                color rgb(147,153,159)
 </style>
